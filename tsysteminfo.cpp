@@ -17,13 +17,10 @@ QString TSystemInfo::NextKey(const QString & OldKey) { //генерирует и
 
 void TSystemInfo::Parser(const QString &Group, const QByteArray &str)
 {
-    //QString s(str);
-    //qDebug() << str;
     QTextStream TS(str);
 
     while (!TS.atEnd()) {
       QString tmp = TS.readLine();
-   //   qDebug() << tmp;
       if (tmp != "\r") {
         size_t position = tmp.indexOf('=');
         QString Key = tmp.left(position);
@@ -31,43 +28,41 @@ void TSystemInfo::Parser(const QString &Group, const QByteArray &str)
         Value.chop(1);
         Key = NextKey(Group + "/" + Key);
         Info.insert(Key, Value);
-        //if (!Info.contains(Key)) Info.insert(Key, Value); //если такой ключ попался впервые
-        //else { //если такой ключ уже был
-        //   Info.insert(NextKey(Key), Value);
-        //   Info.insert(Key + "/0", Info[Key]); //переименовываем первый записанный ключ
-        //   Info.erase(Info.find(Key));
-        //}
       }
     }
 }
 
-TSystemInfo::TSystemInfo(const QString& FileName)
+TSystemInfo::TSystemInfo(const QString &FileName)
+    : Config(FileName, QSettings::IniFormat)
 {
-    qDebug() << "Start get information about system. File:" <<  FileName;
+  // DB.addDatabase(Config);
+}
 
-    QSettings ini(FileName, QSettings::IniFormat);
+TSystemInfo::~TSystemInfo()
+{
 
+}
+
+void TSystemInfo::Updata()
+{
     //получаем путь к файлу с командой wnim
-    ini.beginGroup("SYSTEM");
-    QString WMICFileName = ini.value("wmic", "").toString();
-    if (WMICFileName == "") ;
-    uint32_t GroupListCount = ini.value("GroupCount", 0).toUInt();
+    Config.beginGroup("SYSTEM_INFO");
+    QString WMICFileName = Config.value("wmic", "").toString();
+    uint32_t GroupListCount = Config.value("GroupCount", 0).toUInt();
     QStringList GroupList;
-    for (uint32_t i = 0; i < GroupListCount; ++i) GroupList << ini.value("Group" + QString::number(i), "").toString();
-    ini.endGroup();
-
-    //qDebug() << GroupList;
+    for (uint32_t i = 0; i < GroupListCount; ++i) GroupList << Config.value("Group" + QString::number(i), "").toString();
+    Config.endGroup();
 
     for (auto Item : GroupList) {
-        ini.beginGroup(Item);
-        uint32_t Count = ini.value("Count", 0).toUInt();
+        Config.beginGroup(Item);
+        uint32_t Count = Config.value("Count", 0).toUInt();
         QStringList Keys(Item);
         Keys << "GET";
         for (uint32_t i = 0; i < Count; ++i) {
-            Keys << ini.value("Key" + QString::number(i), "").toString();
+            Keys << Config.value("Key" + QString::number(i), "").toString();
             if (i != Count - 1) Keys << ",";
         }
-        ini.endGroup();
+        Config.endGroup();
         Keys << "/FORMAT:LIST";
 
         //выполняем команду
@@ -78,13 +73,6 @@ TSystemInfo::TSystemInfo(const QString& FileName)
         Parser(Item, cmd->readAllStandardOutput());
         delete cmd;
     }
-  //  qDebug() << Result;
-
-}
-
-TSystemInfo::~TSystemInfo()
-{
-
 }
 
 void TSystemInfo::Print()

@@ -1,4 +1,5 @@
 QT -= gui
+QT += sql
 
 CONFIG += c++11 console
 CONFIG -= app_bundle
@@ -29,4 +30,4 @@ HEADERS += \
     tsysteminfo.h
 
 DISTFILES += \
-    ../build-SystemMonitor-Desktop_Qt_6_1_2_MinGW_64_bit-Debug/debug/SystemInfoConfig.ini
+    ../build-SystemMonitor-Desktop_Qt_6_1_2_MinGW_64_bit-Debug/debug/SystemMonitor.ini
