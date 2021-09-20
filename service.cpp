@@ -12,7 +12,7 @@ Service::Service(int argc, char **argv)
 
      }  catch (...) {
         qCritical() << "Criticall error on costruction service";
-    }
+    };
 }
 
 Service::~Service()
