@@ -1,73 +1,80 @@
+#include <QFileInfo>
+#include <QDir>
 #include "service.h"
-#include "tsysteminfo.h"
+#include "ttasks.h"
 
 Service::Service(int argc, char **argv)
     : QtService<QCoreApplication>(argc, argv, "Monitor Service")
-{
-    try {
-        setServiceDescription("Monitor Service");
-        setServiceFlags(QtServiceBase::CanBeSuspended);
 
-    }  catch (...) {
-        qCritical() << "Criticall error on costruction service";
-    };
+{
+    setServiceDescription("Monitor Service");
+    setServiceFlags(QtServiceBase::CanBeSuspended);
 }
 
 Service::~Service()
 {
-    try {
-        ;
-     }  catch (...) {
-        qCritical() << "Critical error on decostruction service";
-    }
 }
 
 void Service::start()
 {
     try {
+        QString ConfigFileName = application()->applicationDirPath() + "/SystemMonitor.ini";
+
+        QDir::setCurrent(application()->applicationDirPath()); //меняем текущую директорию
+
         qDebug() << "Start service";
+        qDebug() << "Reading configuration from :" + ConfigFileName;
 
-        Config = new QSettings(application()->applicationDirPath() + "/MonitorConfig.ini", QSettings::IniFormat);
+        QFileInfo FileInfo(ConfigFileName);
+        if (!FileInfo.exists()) {
+            qDebug() << "Configuration file not found.";
+            throw std::runtime_error("Configuration file not found.");
+        }
 
-     //   SystemInfo = new TSystemInfo(Config);
+        Config = new QSettings(ConfigFileName, QSettings::IniFormat);
+
+        Tasks = new TTasks(*Config);
 
 
-    //    SystemInfo->Print();
 
-    }  catch (...) {
-        qCritical() << "Critical error on start service";
+        Tasks->StartAll();
+
+    }  catch (const std::exception &e) {
+        qCritical() << "Critical error on start service. Message:" << e.what();
+        exit(-1);
     }
-
 }
 
 void Service::pause()
 {
     try {
-        qDebug() << "Pause service";
-    }  catch (...) {
-        qCritical() << "Critical error on pause service";
+        Tasks->StopAll();
+    }  catch (const std::exception &e) {
+        qCritical() << "Critical error on pause service. Message:" << e.what();
+        exit(-1);
     }
 }
 
 void Service::resume()
 {
     try {
-         qDebug() << "Resume service";
-    }  catch (...) {
-        qCritical() << "Critical error on resume service";
+         Tasks->StartAll();
+    }  catch (const std::exception &e) {
+        qCritical() << "Critical error on resume service. Message:" << e.what();
+        exit(-1);
     }
 }
 
 void Service::stop()
 {
     try {
-        qDebug() << "Stop service";
-
-        delete SystemInfo;
-
-    }  catch (...) {
-        qCritical() << "Critical error on stop service";
+        Tasks->StopAll();
+        delete Tasks;
+    }  catch (const std::exception &e) {
+        qCritical() << "Critical error on stop service. Message:" << e.what();
+        exit(-1);
     }
 }
+
 
 

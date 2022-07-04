@@ -8,12 +8,14 @@ CONFIG -= app_bundle
 # In order to do so, uncomment the following line.
 #DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000    # disables all the APIs deprecated before Qt 6.0.0
 
+
 SOURCES += \
         QtService/qtservice.cpp \
         QtService/qtservice_win.cpp \
         main.cpp \
         service.cpp \
-        tsysteminfo.cpp
+        ttask.cpp \
+        ttasks.cpp
 
 # Default rules for deployment.
 qnx: target.path = /tmp/$${TARGET}/bin
@@ -27,7 +29,11 @@ HEADERS += \
     QtService/qtservice.h \
     QtService/qtservice_p.h \
     service.h \
-    tsysteminfo.h
+    ttask.h \
+    ttasks.h
 
 DISTFILES += \
     ../build-SystemMonitor-Desktop_Qt_6_1_2_MinGW_64_bit-Debug/debug/SystemMonitor.ini
+
+
+
